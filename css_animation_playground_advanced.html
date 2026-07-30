@@ -1,0 +1,445 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+body{font-family:var(--font-sans)}
+.root{display:grid;grid-template-columns:300px 1fr;gap:0;min-height:600px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.sidebar{background:var(--color-background-secondary);border-right:0.5px solid var(--color-border-tertiary);padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.main{background:var(--color-background-primary);display:flex;flex-direction:column}
+.section-label{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.anim-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.anim-btn{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary);padding:7px 8px;border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;text-align:left;transition:border-color .15s,color .15s}
+.anim-btn:hover{border-color:var(--color-border-secondary)}
+.anim-btn.active{border-color:#378ADD;color:#185FA5;background:#E6F1FB}
+.row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.row label{font-size:12px;color:var(--color-text-secondary);width:72px;flex-shrink:0}
+.row input[type=range]{flex:1;accent-color:#378ADD}
+.row .val{font-size:12px;font-weight:500;color:var(--color-text-primary);width:38px;text-align:right;flex-shrink:0}
+.row select,.row input[type=number]{flex:1;font-size:12px;padding:4px 6px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary)}
+.stage-wrap{flex:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:280px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.grid-bg{position:absolute;inset:0;background-image:linear-gradient(var(--color-border-tertiary) 1px,transparent 1px),linear-gradient(90deg,var(--color-border-tertiary) 1px,transparent 1px);background-size:32px 32px;opacity:.5}
+.box{width:96px;height:96px;border-radius:12px;background:#378ADD;display:flex;align-items:center;justify-content:center;color:#E6F1FB;font-size:13px;font-weight:500;position:relative;z-index:1;cursor:default}
+.bottom{padding:16px;display:flex;flex-direction:column;gap:10px}
+.tab-row{display:flex;gap:6px}
+.tab-btn{font-size:12px;padding:5px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-secondary);cursor:pointer}
+.tab-btn.active{background:#378ADD;color:#fff;border-color:#378ADD}
+.panel{display:none}
+.panel.active{display:block}
+.code-block{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;font-family:var(--font-mono);font-size:12px;color:var(--color-text-primary);white-space:pre;overflow-x:auto;line-height:1.6}
+.kw{color:#185FA5}.at{color:#0F6E56}.str{color:#854F0B}.cm{color:#888780;font-style:italic}
+.desc-box{font-size:13px;color:var(--color-text-secondary);line-height:1.6;padding:4px 0}
+.kbd-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.kbd{background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:2px 7px;font-size:11px;color:var(--color-text-secondary)}
+.btn-row{display:flex;gap:8px;margin-top:4px}
+.btn{padding:6px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);font-size:12px;cursor:pointer}
+.btn:hover{background:var(--color-background-secondary)}
+.btn.primary{background:#378ADD;color:#fff;border-color:#378ADD}
+.btn.primary:hover{background:#185FA5}
+.divider{border:none;border-top:0.5px solid var(--color-border-tertiary)}
+.keyframe-editor{display:flex;flex-direction:column;gap:6px}
+.kf-stop{display:flex;align-items:center;gap:8px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:6px 10px}
+.kf-pct{font-size:12px;font-weight:500;color:var(--color-text-primary);width:36px;flex-shrink:0}
+.kf-input{flex:1;font-size:11px;padding:3px 6px;border:0.5px solid var(--color-border-secondary);border-radius:4px;background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-mono)}
+.badge{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500}
+.badge-blue{background:#E6F1FB;color:#185FA5}
+.badge-green{background:#EAF3DE;color:#3B6D11}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.chaining-row{display:flex;gap:6px;flex-wrap:wrap}
+.chain-btn{font-size:11px;padding:4px 8px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-secondary);cursor:pointer}
+.chain-btn.on{background:#E6F1FB;color:#185FA5;border-color:#378ADD}
+.trail{position:absolute;border-radius:50%;pointer-events:none;z-index:0}
+</style>
+
+<h2 class="sr-only">Advanced CSS animation playground with keyframe editor, chaining, and live code output</h2>
+<div class="root">
+  <aside class="sidebar">
+    <div>
+      <div class="section-label">Presets</div>
+      <div class="anim-grid" id="animGrid"></div>
+    </div>
+    <hr class="divider">
+    <div>
+      <div class="section-label">Timing</div>
+      <div class="row"><label>Duration</label><input type="range" id="dur" min="0.2" max="8" step="0.1" value="1.2"><span class="val" id="durV">1.2s</span></div>
+      <div class="row"><label>Delay</label><input type="range" id="del" min="0" max="4" step="0.1" value="0"><span class="val" id="delV">0s</span></div>
+      <div class="row"><label>Iterations</label>
+        <select id="iter"><option value="1">1×</option><option value="2">2×</option><option value="3">3×</option><option value="infinite" selected>∞</option></select>
+      </div>
+      <div class="row"><label>Direction</label>
+        <select id="dir"><option>normal</option><option>reverse</option><option>alternate</option><option>alternate-reverse</option></select>
+      </div>
+      <div class="row"><label>Fill mode</label>
+        <select id="fill"><option>none</option><option>forwards</option><option>backwards</option><option>both</option></select>
+      </div>
+      <div class="row"><label>Easing</label>
+        <select id="ease">
+          <option value="linear">linear</option>
+          <option value="ease" selected>ease</option>
+          <option value="ease-in">ease-in</option>
+          <option value="ease-out">ease-out</option>
+          <option value="ease-in-out">ease-in-out</option>
+          <option value="cubic-bezier(0.68,-0.55,0.27,1.55)">spring overshoot</option>
+          <option value="cubic-bezier(0.34,1.56,0.64,1)">elastic out</option>
+          <option value="steps(8,end)">steps (8)</option>
+          <option value="steps(4,start)">steps (4, start)</option>
+        </select>
+      </div>
+    </div>
+    <hr class="divider">
+    <div>
+      <div class="section-label">Transform offset</div>
+      <div class="row"><label>Translate X</label><input type="range" id="tx" min="-120" max="120" step="1" value="0"><span class="val" id="txV">0px</span></div>
+      <div class="row"><label>Translate Y</label><input type="range" id="ty" min="-120" max="120" step="1" value="0"><span class="val" id="tyV">0px</span></div>
+      <div class="row"><label>Rotate</label><input type="range" id="ro" min="-180" max="180" step="1" value="0"><span class="val" id="roV">0°</span></div>
+      <div class="row"><label>Scale</label><input type="range" id="sc" min="0.2" max="2.5" step="0.05" value="1"><span class="val" id="scV">1.00</span></div>
+    </div>
+    <hr class="divider">
+    <div>
+      <div class="section-label">Motion trail</div>
+      <div class="row"><label>Trail dots</label><input type="range" id="trailN" min="0" max="12" step="1" value="0"><span class="val" id="trailV">off</span></div>
+    </div>
+    <hr class="divider">
+    <div>
+      <div class="section-label">Animation chaining</div>
+      <div class="chaining-row" id="chainingRow"></div>
+      <div id="chainInfo" style="font-size:11px;color:var(--color-text-secondary);margin-top:6px"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" id="applyBtn">Apply</button>
+      <button class="btn" id="pauseBtn">Pause</button>
+      <button class="btn" id="resetBtn">Reset</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="stage-wrap" id="stage">
+      <div class="grid-bg"></div>
+      <div class="box" id="preview">CSS</div>
+    </div>
+    <div class="bottom">
+      <div class="tab-row">
+        <button class="tab-btn active" data-tab="code">Live CSS</button>
+        <button class="tab-btn" data-tab="keyframes">Keyframe editor</button>
+        <button class="tab-btn" data-tab="explain">How it works</button>
+      </div>
+      <div class="panel active" id="tab-code">
+        <pre class="code-block" id="codeOut"></pre>
+      </div>
+      <div class="panel" id="tab-keyframes">
+        <div class="section-label" style="margin-bottom:8px">Edit keyframe stops</div>
+        <div class="keyframe-editor" id="kfEditor"></div>
+        <div class="btn-row" style="margin-top:8px">
+          <button class="btn" id="addStopBtn">+ Add stop</button>
+          <button class="btn primary" id="applyKfBtn">Apply keyframes</button>
+        </div>
+      </div>
+      <div class="panel" id="tab-explain">
+        <div class="desc-box" id="descOut"></div>
+        <div class="kbd-row" id="propKbds"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const ANIMS = [
+  {id:'bounce',label:'Bounce',color:'#185FA5',
+   frames:{'0%':'transform:translateY(0);animation-timing-function:ease-in','45%':'transform:translateY(-60px);animation-timing-function:ease-out','55%':'transform:translateY(-60px)','100%':'transform:translateY(0)'},
+   desc:'Classic bounce using translateY with per-keyframe timing overrides. The 45–55% hold at peak creates a momentary float before gravity pulls it back.',
+   props:['animation-duration','animation-timing-function','translateY (transform)','animation-iteration-count']},
+  {id:'spin',label:'Spin 360°',color:'#0F6E56',
+   frames:{'0%':'transform:rotate(0deg)','100%':'transform:rotate(360deg)'},
+   desc:'Full 360° rotation. With linear easing it feels mechanical; with ease-in-out it feels organic. GPU-accelerated — no layout work.',
+   props:['transform: rotate','animation-direction','animation-iteration-count']},
+  {id:'pulse',label:'Pulse',color:'#854F0B',
+   frames:{'0%':'transform:scale(1);opacity:1','50%':'transform:scale(1.15);opacity:.85','100%':'transform:scale(1);opacity:1'},
+   desc:'Attention-drawing pulse combining scale and opacity for subtle depth. Scale alone feels flat; the opacity dip adds dimensionality.',
+   props:['transform: scale','opacity','animation-direction: alternate']},
+  {id:'slideIn',label:'Slide in',color:'#993C1D',
+   frames:{'0%':'transform:translateX(-120px);opacity:0','60%':'transform:translateX(8px);opacity:1','100%':'transform:translateX(0)'},
+   desc:'Entrance animation: slides from off-screen left, slightly overshoots (+8px), then settles. The overshoot at 60% gives physical weight.',
+   props:['translateX','opacity','animation-fill-mode: forwards','animation-delay']},
+  {id:'flipX',label:'Card flip',color:'#3C3489',
+   frames:{'0%':'transform:perspective(700px) rotateY(0deg)','50%':'transform:perspective(700px) rotateY(90deg)','100%':'transform:perspective(700px) rotateY(180deg)'},
+   desc:'3D card flip using perspective + rotateY. perspective() sets the viewer distance — lower values = more dramatic. Add backface-visibility: hidden on children for a true two-sided card.',
+   props:['perspective()','rotateY','backface-visibility','transform-style: preserve-3d']},
+  {id:'shake',label:'Shake',color:'#993556',
+   frames:{'0%':'transform:translateX(0)','15%':'transform:translateX(-10px)','30%':'transform:translateX(10px)','45%':'transform:translateX(-8px)','60%':'transform:translateX(8px)','75%':'transform:translateX(-4px)','90%':'transform:translateX(4px)','100%':'transform:translateX(0)'},
+   desc:'Error-state shake using translateX with decreasing amplitude — mimics a physical spring damping. Great as a one-shot fill-mode:forwards animation triggered by user error.',
+   props:['translateX','animation-fill-mode','animation-iteration-count: 1']},
+  {id:'morph',label:'Morph',color:'#0C447C',
+   frames:{'0%':'border-radius:12px;transform:rotate(0deg)','25%':'border-radius:50%;transform:rotate(90deg)','50%':'border-radius:0px;transform:rotate(180deg)','75%':'border-radius:50%;transform:rotate(270deg)','100%':'border-radius:12px;transform:rotate(360deg)'},
+   desc:'Shape morphing via border-radius and simultaneous rotation. border-radius is NOT GPU-accelerated (triggers paint), so use sparingly. Perfect for loading states.',
+   props:['border-radius (animated)','transform: rotate','animation-timing-function: ease-in-out']},
+  {id:'float',label:'Float',color:'#185FA5',
+   frames:{'0%':'transform:translateY(0px)','50%':'transform:translateY(-16px)','100%':'transform:translateY(0px)'},
+   desc:'Gentle levitation loop. Very slow duration (3–4s) with ease-in-out creates the convincing illusion of weightlessness. Combine with a subtle box-shadow scale for extra realism.',
+   props:['translateY','animation-duration (slow)','animation-timing-function: ease-in-out']},
+  {id:'glitch',label:'Glitch',color:'#633806',
+   frames:{'0%':'transform:skewX(0deg) translateX(0)','8%':'transform:skewX(-6deg) translateX(4px)','16%':'transform:skewX(4deg) translateX(-3px)','24%':'transform:skewX(0deg)','70%':'transform:skewX(0deg)','74%':'transform:skewX(-3deg) translateX(2px)','80%':'transform:skewX(0deg)','100%':'transform:skewX(0deg)'},
+   desc:'Digital glitch effect using skewX and translateX in sharp bursts. Most of the animation is at 0 (idle), with glitch bursts at 0–24% and 70–80% — asymmetric timing makes it feel random.',
+   props:['skewX (transform)','transform: translateX','animation-timing-function: steps(1)']},
+  {id:'heartbeat',label:'Heartbeat',color:'#A32D2D',
+   frames:{'0%':'transform:scale(1)','14%':'transform:scale(1.18)','28%':'transform:scale(1)','42%':'transform:scale(1.08)','56%':'transform:scale(1)','100%':'transform:scale(1)'},
+   desc:'Double-beat heartbeat: a strong pulse at 14%, return, then a softer echo at 42%. The double-beat timing (14% / 42%) mirrors a real cardiac rhythm. Use with animation-timing-function: linear.',
+   props:['transform: scale','keyframe percentage rhythm','animation-timing-function: linear']},
+];
+
+const CHAIN_IDS = ['bounce','spin','pulse','slideIn'];
+
+let sel = ANIMS[0];
+let paused = false;
+let chainSet = new Set();
+let trailTimers = [];
+let kfStops = [];
+let customKf = null;
+
+const preview = document.getElementById('preview');
+const stage = document.getElementById('stage');
+
+function buildAnimBtn(a){
+  const b = document.createElement('button');
+  b.className = 'anim-btn';
+  b.textContent = a.label;
+  b.dataset.id = a.id;
+  b.addEventListener('click', ()=>{ selectAnim(a); });
+  return b;
+}
+
+const animGrid = document.getElementById('animGrid');
+ANIMS.forEach(a => animGrid.appendChild(buildAnimBtn(a)));
+
+function selectAnim(a){
+  sel = a;
+  customKf = null;
+  document.querySelectorAll('.anim-btn').forEach(b => b.classList.toggle('active', b.dataset.id === a.id));
+  preview.style.background = a.color;
+  buildKfEditor(a.frames);
+  applyAnim();
+  renderDesc();
+  renderCode();
+}
+
+function getControls(){
+  return {
+    dur: document.getElementById('dur').value,
+    del: document.getElementById('del').value,
+    iter: document.getElementById('iter').value,
+    dir: document.getElementById('dir').value,
+    fill: document.getElementById('fill').value,
+    ease: document.getElementById('ease').value,
+    tx: document.getElementById('tx').value,
+    ty: document.getElementById('ty').value,
+    ro: document.getElementById('ro').value,
+    sc: document.getElementById('sc').value,
+  };
+}
+
+function injectKeyframes(name, framesObj){
+  let existing = document.getElementById('dyn-kf-' + name);
+  if(existing) existing.remove();
+  const s = document.createElement('style');
+  s.id = 'dyn-kf-' + name;
+  let css = `@keyframes ${name} {`;
+  Object.entries(framesObj).forEach(([pct, props]) => {
+    css += `${pct} { ${props} } `;
+  });
+  css += `}`;
+  s.textContent = css;
+  document.head.appendChild(s);
+}
+
+function applyAnim(){
+  const c = getControls();
+  const frames = customKf || sel.frames;
+  injectKeyframes(sel.id, frames);
+
+  const trailN = parseInt(document.getElementById('trailN').value);
+
+  preview.style.animation = 'none';
+  preview.offsetWidth;
+  preview.style.animation = `${sel.id} ${c.dur}s ${c.ease} ${c.del}s ${c.iter} ${c.dir} ${c.fill}`;
+  preview.style.transform = `translateX(${c.tx}px) translateY(${c.ty}px) rotate(${c.ro}deg) scale(${c.sc})`;
+
+  clearTrails();
+  if(trailN > 0) startTrail(trailN);
+  renderCode();
+}
+
+function clearTrails(){
+  trailTimers.forEach(clearInterval);
+  trailTimers = [];
+  document.querySelectorAll('.trail').forEach(t => t.remove());
+}
+
+function startTrail(n){
+  const id = setInterval(()=>{
+    const r = preview.getBoundingClientRect();
+    const sr = stage.getBoundingClientRect();
+    const dot = document.createElement('div');
+    dot.className = 'trail';
+    const sz = 14 + Math.random()*8;
+    dot.style.cssText = `width:${sz}px;height:${sz}px;background:${sel.color};opacity:0.35;left:${r.left-sr.left + r.width/2 - sz/2}px;top:${r.top-sr.top + r.height/2 - sz/2}px;transition:opacity .5s`;
+    stage.appendChild(dot);
+    setTimeout(()=>{ dot.style.opacity = '0'; setTimeout(()=>dot.remove(), 500); }, 80);
+  }, 1000/n/3);
+  trailTimers.push(id);
+}
+
+function renderCode(){
+  const c = getControls();
+  const frames = customKf || sel.frames;
+  let kfText = Object.entries(frames).map(([pct,props]) => `  ${pct} { ${props} }`).join('\n');
+  const out = document.getElementById('codeOut');
+  out.innerHTML = `<span class="kw">@keyframes</span> <span class="at">${sel.id}</span> {\n${kfText}\n}\n\n<span class="cm">/* element */</span>\n<span class="kw">#el</span> {\n  <span class="at">animation</span>: <span class="str">${sel.id} ${c.dur}s ${c.ease} ${c.del}s ${c.iter} ${c.dir} ${c.fill}</span>;\n  <span class="at">transform</span>: <span class="str">translateX(${c.tx}px) translateY(${c.ty}px) rotate(${c.ro}deg) scale(${c.sc})</span>;\n}`;
+}
+
+function renderDesc(){
+  document.getElementById('descOut').textContent = sel.desc;
+  const kbds = document.getElementById('propKbds');
+  kbds.innerHTML = '';
+  sel.props.forEach(p => {
+    const k = document.createElement('span');
+    k.className = 'kbd';
+    k.textContent = p;
+    kbds.appendChild(k);
+  });
+}
+
+function buildKfEditor(frames){
+  kfStops = Object.entries(frames).map(([pct,props]) => ({pct, props}));
+  renderKfEditor();
+}
+
+function renderKfEditor(){
+  const ed = document.getElementById('kfEditor');
+  ed.innerHTML = '';
+  kfStops.forEach((stop, i) => {
+    const row = document.createElement('div');
+    row.className = 'kf-stop';
+    row.innerHTML = `<span class="kf-pct">${stop.pct}</span><input class="kf-input" value="${stop.props}" data-i="${i}"><button class="btn" data-del="${i}" style="padding:2px 6px;font-size:11px" title="remove">×</button>`;
+    ed.appendChild(row);
+  });
+  ed.querySelectorAll('.kf-input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      kfStops[parseInt(e.target.dataset.i)].props = e.target.value;
+    });
+  });
+  ed.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const i = parseInt(e.target.dataset.del);
+      if(kfStops.length > 2){ kfStops.splice(i, 1); renderKfEditor(); }
+    });
+  });
+}
+
+document.getElementById('addStopBtn').addEventListener('click', ()=>{
+  const pct = prompt('Keyframe percentage (e.g. 50%)', '50%');
+  if(pct){ kfStops.push({pct: pct.trim(), props: 'transform: scale(1)'}); renderKfEditor(); }
+});
+
+document.getElementById('applyKfBtn').addEventListener('click', ()=>{
+  customKf = {};
+  kfStops.forEach(s => { customKf[s.pct] = s.props; });
+  applyAnim();
+});
+
+const chainingRow = document.getElementById('chainingRow');
+CHAIN_IDS.forEach(id => {
+  const a = ANIMS.find(x => x.id === id);
+  const b = document.createElement('button');
+  b.className = 'chain-btn';
+  b.textContent = a.label;
+  b.dataset.id = id;
+  b.addEventListener('click', ()=>{
+    if(chainSet.has(id)){ chainSet.delete(id); b.classList.remove('on'); }
+    else { chainSet.add(id); b.classList.add('on'); }
+    updateChainInfo();
+  });
+  chainingRow.appendChild(b);
+});
+
+function updateChainInfo(){
+  const arr = [...chainSet];
+  const info = document.getElementById('chainInfo');
+  if(!arr.length){ info.textContent = 'Select presets to chain — they run in sequence.'; return; }
+  info.textContent = 'Chained: ' + arr.join(', ') + ' — click Apply to run.';
+}
+updateChainInfo();
+
+async function runChain(){
+  const arr = [...chainSet];
+  if(!arr.length) return;
+  for(const id of arr){
+    const a = ANIMS.find(x => x.id === id);
+    if(!a) continue;
+    const c = getControls();
+    injectKeyframes(id, a.frames);
+    preview.style.animation = 'none';
+    preview.offsetWidth;
+    preview.style.background = a.color;
+    const dur = parseFloat(c.dur);
+    preview.style.animation = `${id} ${dur}s ${c.ease} 0s 1 ${c.dir} forwards`;
+    await new Promise(r => setTimeout(r, dur * 1000 + 60));
+  }
+  preview.style.animation = 'none';
+}
+
+document.getElementById('applyBtn').addEventListener('click', ()=>{
+  if(chainSet.size > 0){ runChain(); } else { applyAnim(); }
+});
+
+document.getElementById('pauseBtn').addEventListener('click', ()=>{
+  paused = !paused;
+  preview.style.animationPlayState = paused ? 'paused' : 'running';
+  document.getElementById('pauseBtn').textContent = paused ? 'Resume' : 'Pause';
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  document.getElementById('dur').value = 1.2;
+  document.getElementById('del').value = 0;
+  document.getElementById('iter').value = 'infinite';
+  document.getElementById('dir').value = 'normal';
+  document.getElementById('fill').value = 'none';
+  document.getElementById('ease').value = 'ease';
+  ['tx','ty','ro'].forEach(id => document.getElementById(id).value = 0);
+  document.getElementById('sc').value = 1;
+  document.getElementById('trailN').value = 0;
+  updateSliderLabels();
+  customKf = null;
+  chainSet.clear();
+  document.querySelectorAll('.chain-btn').forEach(b => b.classList.remove('on'));
+  updateChainInfo();
+  selectAnim(ANIMS[0]);
+});
+
+function updateSliderLabels(){
+  document.getElementById('durV').textContent = parseFloat(document.getElementById('dur').value).toFixed(1) + 's';
+  document.getElementById('delV').textContent = parseFloat(document.getElementById('del').value).toFixed(1) + 's';
+  document.getElementById('txV').textContent = document.getElementById('tx').value + 'px';
+  document.getElementById('tyV').textContent = document.getElementById('ty').value + 'px';
+  document.getElementById('roV').textContent = document.getElementById('ro').value + '°';
+  document.getElementById('scV').textContent = parseFloat(document.getElementById('sc').value).toFixed(2);
+  const tn = parseInt(document.getElementById('trailN').value);
+  document.getElementById('trailV').textContent = tn === 0 ? 'off' : tn;
+}
+
+['dur','del','tx','ty','ro','sc','trailN'].forEach(id => {
+  document.getElementById(id).addEventListener('input', ()=>{ updateSliderLabels(); applyAnim(); });
+});
+['iter','dir','fill','ease'].forEach(id => {
+  document.getElementById(id).addEventListener('change', applyAnim);
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+selectAnim(ANIMS[0]);
+updateSliderLabels();
+</script>

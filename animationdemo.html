@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSS Animation Playground</title>
+  <style>
+    :root{--accent:#0b84ff;--bg:#0f1720;--panel:#0b1220;--muted:#9aa5b1}
+    html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Arial;background:linear-gradient(180deg,#071021 0%, #0b1220 100%);color:#e6eef6}
+    .wrap{display:flex;gap:18px;padding:20px;box-sizing:border-box}
+    .sidebar{width:360px;background:rgba(255,255,255,0.02);padding:16px;border-radius:8px}
+    h1{margin:0 0 12px;font-size:20px}
+    .group{margin-bottom:14px}
+    .animations{display:flex;flex-wrap:wrap;gap:8px}
+    button.anim-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:8px 10px;border-radius:6px;cursor:pointer}
+    button.anim-btn.active{border-color:var(--accent);color:var(--accent);box-shadow:0 6px 18px rgba(11,132,255,0.12)}
+    .controls{display:grid;grid-template-columns:1fr 70px;gap:8px;align-items:center;margin-top:8px}
+    label{font-size:13px;color:var(--muted)}
+    input[type=range]{width:100%}
+    select,input[type=number],input[type=text]{width:100%;padding:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    .main{flex:1;display:flex;flex-direction:column;gap:12px}
+    .preview-panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));border-radius:8px;padding:18px;min-height:380px;display:flex;gap:20px}
+    .stage{flex:1;display:flex;align-items:center;justify-content:center}
+    .box{width:160px;height:160px;border-radius:12px;background:linear-gradient(135deg,#0b84ff,#6ad0ff);display:flex;align-items:center;justify-content:center;color:#04233b;font-weight:700;box-shadow:0 8px 24px rgba(11,132,255,0.12);}
+    .info{width:420px;background:rgba(0,0,0,0.12);padding:12px;border-radius:8px;color:var(--muted);font-size:13px}
+    pre.code{background:#031220;padding:12px;border-radius:6px;overflow:auto;color:#cbe7ff;margin:0;font-size:13px}
+    .legend{font-size:13px;color:var(--muted);margin-bottom:8px}
+    .attr-row{display:flex;gap:8px;align-items:center;margin-top:10px}
+    .muted{color:var(--muted);font-size:13px}
+    .small{font-size:12px;color:var(--muted)}
+    .footer{display:flex;gap:10px;align-items:center}
+    a.logo{color:var(--muted);text-decoration:none;font-size:13px}
+    .kbd{background:rgba(255,255,255,0.02);border-radius:4px;padding:3px 6px;font-size:12px}
+    @media (max-width:900px){.wrap{flex-direction:column}.sidebar{width:100%}}
+
+    /* Keyframes used by the demo */
+    @keyframes bounceY { 0%,100%{transform:translateY(0)}50%{transform:translateY(-40px)} }
+    @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+    @keyframes pulse {0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)} }
+    @keyframes slideIn {0%{transform:translateX(-200px);opacity:0}100%{transform:translateX(0);opacity:1}} 
+    @keyframes flipX {0%{transform:perspective(600px) rotateY(0)}50%{transform:perspective(600px) rotateY(180deg)}100%{transform:perspective(600px) rotateY(360deg)} }
+    @keyframes shimmer {0%{background-position:-200% 0}100%{background-position:200% 0}}
+    .shimmer{background:linear-gradient(90deg,#0b84ff 0%, #9be8ff 30%, #0b84ff 60%);background-size:200% 100%}
+  </style>
+</head>
+<body>
+  <div style="padding:14px 20px 0 20px">
+    <h1>CSS Animation Playground — interactive demo</h1>
+    <p style="margin:6px 0 18px;color:var(--muted)">Click any animation or tweak attributes below to see live changes. Explanations included for each attribute and keyframe.</p>
+  </div>
+  <div class="wrap">
+    <aside class="sidebar">
+      <div class="group">
+        <div class="legend">Animations</div>
+        <div class="animations" id="animations"></div>
+      </div>
+
+      <div class="group">
+        <div class="legend">Attributes & purpose</div>
+        <div class="muted">
+          <div><strong>animation-name</strong>: the @keyframes block to run</div>
+          <div><strong>animation-duration</strong>: how long one cycle takes</div>
+          <div><strong>animation-timing-function</strong>: easing (linear, ease-in, cubic-bezier)</div>
+          <div><strong>animation-delay</strong>: start delay before first cycle</div>
+          <div><strong>animation-iteration-count</strong>: how many times to repeat (or infinite)</div>
+          <div><strong>animation-direction</strong>: normal, reverse, alternate</div>
+          <div><strong>animation-fill-mode</strong>: how styles are applied before/after animation</div>
+          <div><strong>transform</strong>: translate/rotate/scale applied inside keyframes or on the element</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="legend">Controls</div>
+        <div class="attr-row"><label>Duration (s)</label><input id="duration" type="range" min="0.1" max="10" step="0.1" value="1"><div class="kbd" id="durVal">1s</div></div>
+        <div class="attr-row"><label>Timing</label><select id="timing"><option>linear</option><option>ease</option><option>ease-in</option><option>ease-out</option><option>cubic-bezier(0.68,-0.55,0.27,1.55)</option></select></div>
+        <div class="attr-row"><label>Delay (s)</label><input id="delay" type="number" min="0" step="0.1" value="0"></div>
+        <div class="attr-row"><label>Iterations</label><select id="iteration"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="infinite">infinite</option></select></div>
+        <div class="attr-row"><label>Direction</label><select id="direction"><option>normal</option><option>reverse</option><option>alternate</option><option>alternate-reverse</option></select></div>
+        <div class="attr-row"><label>Fill Mode</label><select id="fillMode"><option>none</option><option>forwards</option><option>backwards</option><option>both</option></select></div>
+        <div style="margin-top:10px" class="small">Transforms applied alongside animation (translateX, rotate, scale)</div>
+        <div class="attr-row"><input id="tx" type="number" value="0" step="1"><label class="small">px translateX</label></div>
+        <div class="attr-row"><input id="rot" type="number" value="0" step="1"><label class="small">deg rotate</label></div>
+        <div class="attr-row"><input id="scale" type="number" value="1" step="0.05"><label class="small">scale</label></div>
+        <div style="margin-top:10px;display:flex;gap:8px"><button id="applyBtn" class="anim-btn">Apply</button><button id="resetBtn" class="anim-btn">Reset</button></div>
+      </div>
+
+      <div class="group">
+        <div class="legend">Quick notes</div>
+        <div class="muted"><strong>Keyframes</strong>: Divide animation into logical frames using percentages (0%..100%). Use transforms inside frames for performant animations (GPU-accelerated).</div>
+      </div>
+
+    </aside>
+
+    <main class="main">
+      <div class="preview-panel">
+        <div class="stage">
+          <div class="box" id="preview">Preview</div>
+        </div>
+        <div class="info">
+          <div class="legend">Live CSS</div>
+          <pre class="code" id="cssCode">/* Live CSS will appear here */</pre>
+          <div style="margin-top:8px" class="legend">Attribute explanation</div>
+          <div id="explain" class="small muted">Select an animation to view descriptions.</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;align-items:center;margin-top:8px">
+        <div class="small muted">Try clicking an animation name to apply it. Use sliders and selects to adjust attributes — changes update live.</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const animations = [
+      {id:'bounce', label:'Bounce (translateY)', desc:'Bounces the element vertically using translateY and keyframe easing.'},
+      {id:'spin', label:'Spin (rotate)', desc:'Rotates the element 360° — good for loaders and spinners.'},
+      {id:'pulse', label:'Pulse (scale)', desc:'Subtle scaling to draw attention to a control.'},
+      {id:'slideIn', label:'Slide In (translateX+fade)', desc:'Slides element from the left while fading in.'},
+      {id:'flipX', label:'Card Flip (3D rotate)', desc:'Flip animation using perspective and rotateY.'},
+      {id:'shimmer', label:'Shimmer (background move)', desc:'Animated background gradient to create shimmering effect.'}
+    ];
+
+    const animationsContainer = document.getElementById('animations');
+    const preview = document.getElementById('preview');
+    const cssCode = document.getElementById('cssCode');
+    const explain = document.getElementById('explain');
+
+    let selected = 'bounce';
+
+    function makeBtn(a){
+      const b = document.createElement('button');
+      b.className = 'anim-btn';
+      b.textContent = a.label;
+      b.dataset.id = a.id;
+      b.addEventListener('click',()=>{document.querySelectorAll('.anim-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selected=a.id;explain.textContent=a.desc;updatePreview();});
+      return b;
+    }
+    animations.forEach(a=>animationsContainer.appendChild(makeBtn(a)));
+    // mark first active
+    document.querySelectorAll('.anim-btn')[0].classList.add('active');
+    explain.textContent = animations[0].desc;
+
+    // controls
+    const duration = document.getElementById('duration');
+    const durVal = document.getElementById('durVal');
+    const timing = document.getElementById('timing');
+    const delay = document.getElementById('delay');
+    const iteration = document.getElementById('iteration');
+    const direction = document.getElementById('direction');
+    const fillMode = document.getElementById('fillMode');
+    const tx = document.getElementById('tx');
+    const rot = document.getElementById('rot');
+    const scale = document.getElementById('scale');
+    const applyBtn = document.getElementById('applyBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    duration.addEventListener('input',()=>{durVal.textContent = duration.value + 's'; updatePreview();});
+    [timing,delay,iteration,direction,fillMode,tx,rot,scale].forEach(el=>el.addEventListener('input',updatePreview));
+    applyBtn.addEventListener('click',updatePreview);
+    resetBtn.addEventListener('click',resetAll);
+
+    function buildAnimationString(){
+      const name = selected;
+      const dur = duration.value + 's';
+      const timeFn = timing.value;
+      const del = (parseFloat(delay.value)||0) + 's';
+      const it = iteration.value;
+      const dir = direction.value;
+      const fill = fillMode.value;
+      return `${name} ${dur} ${timeFn} ${del} ${it} ${dir} ${fill}`;
+    }
+
+    function updatePreview(){
+      // clear transforms applied by keyframes for shimmer
+      preview.style.animation = buildAnimationString();
+      // transform composition applied on top of keyframe transforms
+      const txPx = parseFloat(tx.value)||0;
+      const rotDeg = parseFloat(rot.value)||0;
+      const sc = parseFloat(scale.value)||1;
+      // If using shimmer, add class to show background animation
+      if(selected==='shimmer') preview.classList.add('shimmer'); else preview.classList.remove('shimmer');
+      preview.style.transform = `translateX(${txPx}px) rotate(${rotDeg}deg) scale(${sc})`;
+
+      // live CSS snippet
+      const css = `#preview {\n  animation: ${buildAnimationString()};\n  transform: translateX(${txPx}px) rotate(${rotDeg}deg) scale(${sc});\n}\n\n/* keyframes: */\n`;
+      cssCode.textContent = css + getKeyframeText(selected);
+    }
+
+    function getKeyframeText(id){
+      switch(id){
+        case 'bounce': return `@keyframes bounce {\n  0%,100% { transform: translateY(0); }\n  50% { transform: translateY(-40px); }\n}`;
+        case 'spin': return `@keyframes spin {\n  from{ transform: rotate(0); }\n  to{ transform: rotate(360deg); }\n}`;
+        case 'pulse': return `@keyframes pulse {\n  0%{ transform: scale(1); }\n  50%{ transform: scale(1.08); }\n  100%{ transform: scale(1); }\n}`;
+        case 'slideIn': return `@keyframes slideIn {\n  0%{ transform: translateX(-200px); opacity:0 }\n  100%{ transform: translateX(0); opacity:1 }\n}`;
+        case 'flipX': return `@keyframes flipX {\n  0%{ transform: perspective(600px) rotateY(0); }\n  50%{ transform: perspective(600px) rotateY(180deg); }\n  100%{ transform: perspective(600px) rotateY(360deg); }\n}`;
+        case 'shimmer': return `@keyframes shimmer {\n  0%{ background-position: -200% 0 }\n  100%{ background-position: 200% 0 }\n}`;
+        default: return '';
+      }
+    }
+
+    function resetAll(){
+      duration.value = 1; durVal.textContent = '1s'; timing.value='linear'; delay.value=0; iteration.value='1'; direction.value='normal'; fillMode.value='none'; tx.value=0; rot.value=0; scale.value=1; updatePreview();
+    }
+
+    // initialize
+    updatePreview();
+  </script>
+</body>
+</html>
