@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Live Learning Playground</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0f0e17;--surface:#1a1a2e;--surface2:#16213e;
+    --accent:#7c3aed;--accent2:#06b6d4;--accent3:#f59e0b;
+    --text:#e8e8f0;--text2:#a0a0b8;--text3:#606078;
+    --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);
+    --radius:10px;--radius-sm:6px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+  #topbar{display:flex;align-items:center;gap:14px;padding:14px 24px;background:var(--surface);border-bottom:1px solid var(--border2);position:sticky;top:0;z-index:10}
+  #topbar .logo{display:flex;align-items:center;gap:10px}
+  #topbar .logo-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+  #topbar h1{font-size:17px;font-weight:800;color:var(--text)}
+  #topbar h1 span{color:var(--accent2)}
+  #topbar .badge{margin-left:auto;background:rgba(124,58,237,0.18);color:#a78bfa;font-size:12px;font-weight:700;padding:4px 12px;border-radius:99px;border:1px solid rgba(124,58,237,0.3);letter-spacing:.04em}
+  #app{display:flex;height:calc(100vh - 61px)}
+  #sidebar{width:235px;min-width:235px;background:var(--surface2);border-right:1px solid var(--border2);overflow-y:auto;padding-bottom:20px}
+  #sidebar::-webkit-scrollbar{width:4px}
+  #sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+  .sidebar-label{font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--text3);padding:18px 16px 8px;text-transform:uppercase}
+  .topic{border-bottom:1px solid var(--border)}
+  .topic-title{font-size:13px;font-weight:700;color:var(--text2);padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;transition:color .2s,background .2s}
+  .topic-title:hover{color:var(--text);background:rgba(255,255,255,0.04)}
+  .topic-title.open{color:var(--accent2)}
+  .topic-title .arrow{font-size:9px;transition:transform .2s;opacity:.6}
+  .topic-title.open .arrow{transform:rotate(90deg)}
+  .subtags{display:none}
+  .subtags.open{display:block}
+  .tag-btn{display:block;width:100%;text-align:left;padding:8px 14px 8px 28px;font-size:12.5px;font-family:'Nunito',sans-serif;font-weight:600;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:1px solid var(--border);transition:color .15s,background .15s;position:relative}
+  .tag-btn::before{content:'';position:absolute;left:16px;top:50%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:var(--text3);transition:background .15s}
+  .tag-btn:last-child{border-bottom:none}
+  .tag-btn:hover{color:var(--text);background:rgba(255,255,255,0.04)}
+  .tag-btn:hover::before{background:var(--accent2)}
+  .tag-btn.active{color:var(--accent2);background:rgba(6,182,212,0.08);font-weight:700}
+  .tag-btn.active::before{background:var(--accent2)}
+  #main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  #header{padding:14px 22px 12px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:12px}
+  #header .topic-icon{width:36px;height:36px;border-radius:var(--radius-sm);background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.3);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+  #topic-name{font-size:16px;font-weight:800;color:var(--text)}
+  #topic-desc{font-size:12px;color:var(--text3);margin-top:2px}
+  #content{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+  #content::-webkit-scrollbar{width:4px}
+  #content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+  #variant-bar{display:flex;flex-wrap:wrap;gap:6px}
+  .pill{font-size:12px;font-weight:700;font-family:'Fira Code',monospace;padding:4px 12px;border-radius:99px;background:rgba(255,255,255,0.05);border:1px solid var(--border2);color:var(--text2);cursor:pointer;transition:all .15s;user-select:none}
+  .pill:hover{border-color:var(--accent2);color:var(--accent2)}
+  .pill.on{background:rgba(6,182,212,0.15);border-color:var(--accent2);color:var(--accent2)}
+  #preview-wrap{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden}
+  #preview-label{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text3);padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;text-transform:uppercase}
+  #preview-area{min-height:200px;padding:20px;background:#fff;transition:all .3s}
+  #code-wrap{background:#0d1117;border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden}
+  #code-label{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text3);padding:8px 14px;border-bottom:1px solid rgba(255,255,255,0.06);text-transform:uppercase}
+  #code-block{font-family:'Fira Code',monospace;font-size:12.5px;color:#c9d1d9;padding:14px 16px;white-space:pre;overflow-x:auto;line-height:1.8;background:transparent}
+  #explain{font-size:13.5px;font-weight:600;color:var(--text2);line-height:1.75;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-left:3px solid var(--accent3);border-radius:var(--radius-sm);padding:12px 14px}
+  .slider-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .slider-row label{font-size:12px;font-weight:700;color:var(--text2);width:110px;flex-shrink:0}
+  .slider-row input[type=range]{flex:1;accent-color:var(--accent2)}
+  .slider-row .val{font-family:'Fira Code',monospace;font-size:12px;color:var(--accent2);width:52px;text-align:right;flex-shrink:0}
+  .slider-section{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+  .slider-section-title{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-icon">🎨</div>
+    <h1>CSS Live <span>Playground</span></h1>
+  </div>
+  <div class="badge">LIVE DEMO</div>
+</div>
+<div id="app">
+  <div id="sidebar"><div class="sidebar-label">CSS Topics</div></div>
+  <div id="main">
+    <div id="header">
+      <div class="topic-icon" id="topic-icon">📘</div>
+      <div>
+        <div id="topic-name">Select a CSS topic</div>
+        <div id="topic-desc">Click any tag in the sidebar to see a live demo</div>
+      </div>
+    </div>
+    <div id="content">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text3);font-size:15px;text-align:center;padding:30px" id="welcome">
+        <div style="font-size:48px;margin-bottom:8px">👈</div>
+        <p style="max-width:280px;line-height:1.6">Pick any <strong style="color:var(--text2)">CSS topic</strong> from the sidebar to see it come alive right here!</p>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// ─── BOX MODEL RENDER HELPERS ───────────────────────────────────────────────
+function boxDemo(el, opts){
+  const {padding=20,margin=20,width=200,height=80,border=2,borderColor='#7C3AED',bgColor='#e8f4fd',label='div.box'}=opts;
+  const outerSize = width + margin*2;
+  el.style.background='#f0f0f0';
+  el.style.padding='0';
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:center;min-height:200px;background:#f5f5f5;border-radius:8px;position:relative">
+      <div style="position:relative;width:${outerSize}px;display:flex;align-items:center;justify-content:center">
+        <!-- margin indicator -->
+        <div style="position:absolute;inset:0;background:rgba(255,152,0,0.12);border:2px dashed #FF9800;border-radius:6px;pointer-events:none"></div>
+        <span style="position:absolute;top:2px;left:6px;font-size:10px;color:#E65100;font-weight:700">margin: ${margin}px</span>
+        <!-- the actual box -->
+        <div style="
+          width:${width}px;
+          height:${height}px;
+          padding:${padding}px;
+          margin:${margin}px;
+          border:${border}px solid ${borderColor};
+          background:${bgColor};
+          border-radius:6px;
+          display:flex;align-items:center;justify-content:center;
+          position:relative;
+          transition:all .3s;
+        ">
+          <span style="position:absolute;top:3px;left:6px;font-size:10px;color:#1565c0;font-weight:700">padding: ${padding}px</span>
+          <div style="background:#fff;border:1px dashed #999;border-radius:4px;padding:4px 10px;font-size:12px;font-weight:700;color:#333;text-align:center;min-width:60px">
+            ${label}<br><span style="font-size:10px;color:#888">${width}×${height}px</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;justify-content:center">
+      <span style="font-size:11px;background:#FFF3E0;color:#E65100;padding:3px 10px;border-radius:99px;font-weight:700;border:1px solid #FFB74D">🟠 margin: ${margin}px</span>
+      <span style="font-size:11px;background:#E3F2FD;color:#1565c0;padding:3px 10px;border-radius:99px;font-weight:700;border:1px solid #90CAF9">🔵 padding: ${padding}px</span>
+      <span style="font-size:11px;background:#F3E5F5;color:#6a1b9a;padding:3px 10px;border-radius:99px;font-weight:700;border:1px solid #CE93D8">🟣 border: ${border}px</span>
+      <span style="font-size:11px;background:#E8F5E9;color:#1b5e20;padding:3px 10px;border-radius:99px;font-weight:700;border:1px solid #A5D6A7">🟢 ${width}×${height}px</span>
+    </div>`;
+}
+
+// ─── TOPICS DATA ─────────────────────────────────────────────────────────────
+const topics = [
+  {
+    title:"What is CSS", icon:"💡",
+    tags:[
+      {label:"CSS Introduction",icon:"💡",
+       code:"/* CSS = Cascading Style Sheets\n   Adds design & style to HTML structure */\n\nh1 { color: #7C3AED; font-family: Georgia; }\np  { color: #555;    font-size: 15px; }",
+       explain:"CSS stands for <strong>Cascading Style Sheets</strong>. It controls colors, fonts, layout, spacing, animations and responsive design — making plain HTML look amazing.",
+       variants:["Default"],
+       render(v,el){el.style.background="#fff";el.innerHTML='<h1 style="color:#7C3AED;font-family:Georgia;font-size:24px">Welcome to CSS!</h1><p style="color:#555;font-size:15px;margin-top:10px">CSS makes web pages look great. Without CSS, pages are plain text.</p><p style="color:#7C3AED;font-size:13px;margin-top:8px;font-style:italic">↑ This styling is all CSS!</p>'}
+      },
+      {label:"CSS Syntax",icon:"🔤",
+       code:"selector {\n  property: value;\n}\n\n/* Example: */\nh1 {\n  color: crimson;\n  font-size: 28px;\n}",
+       explain:"Every CSS rule has three parts: a <strong>selector</strong> (what to target), a <strong>property</strong> (what to change), and a <strong>value</strong> (how to change it).",
+       variants:["Default"],
+       render(v,el){el.style.background="#fff";el.innerHTML='<div style="font-family:monospace;font-size:13px;line-height:2;background:#f4f4f4;padding:14px;border-radius:8px"><span style="color:#e67e22;font-weight:bold">h1</span> {<br>&nbsp;&nbsp;<span style="color:#2980b9">color</span>: <span style="color:#27ae60">crimson</span>;<br>&nbsp;&nbsp;<span style="color:#2980b9">font-size</span>: <span style="color:#27ae60">28px</span>;<br>}</div><h1 style="color:crimson;font-size:28px;margin-top:14px">Styled by the CSS above!</h1>'}
+      },
+    ]
+  },
+  {
+    title:"Types of CSS", icon:"📂",
+    tags:[
+      {label:"Inline CSS",icon:"✏️",
+       code:'<!-- Inline CSS: style inside the HTML tag -->\n<h1 style="color: red; font-family: Times New Roman;">\n  Hello World\n</h1>',
+       explain:"<strong>Inline CSS</strong> is written directly inside the HTML tag using the <strong>style</strong> attribute. It only affects that single element.",
+       variants:["red","royalblue","seagreen","darkorange"],
+       render(v,el){el.style.background="#fff";el.innerHTML=`<div style="background:#fff3e0;padding:8px 12px;border-radius:6px;font-size:12px;font-family:monospace;margin-bottom:12px;color:#555">&lt;h1 <span style="color:#e67e22">style="color:${v}"</span>&gt;Hello World&lt;/h1&gt;</div><h1 style="color:${v};font-family:Times New Roman;font-size:26px">Hello World — color: ${v}</h1>`}
+      },
+      {label:"Internal CSS",icon:"📄",
+       code:"<head>\n  <style>\n    h1 { color: darkviolet; font-size: 24px; }\n    p  { color: #444;       font-size: 15px; }\n  </style>\n</head>",
+       explain:"<strong>Internal CSS</strong> is written inside a <strong>&lt;style&gt;</strong> tag in the &lt;head&gt; section. It styles all matching elements on that one HTML page.",
+       variants:["Default"],
+       render(v,el){el.style.background="#fff";el.innerHTML='<div style="background:#f4f0ff;padding:10px 14px;border-radius:6px;font-family:monospace;font-size:12px;margin-bottom:12px;color:#555"><span style="color:#888">&lt;style&gt;</span><br>h1{color:darkviolet;}<br>p{color:#444;}<br><span style="color:#888">&lt;/style&gt;</span></div><h1 style="color:darkviolet;font-size:22px">Styled by Internal CSS</h1><p style="color:#444;font-size:15px;margin-top:8px">This paragraph is also styled internally.</p>'}
+      },
+      {label:"External CSS",icon:"🔗",
+       code:"<!-- index.html -->\n<head>\n  <link rel=\"stylesheet\" href=\"style.css\">\n</head>\n\n/* style.css */\nh1 {\n  color: teal;\n  font-size: 26px;\n}",
+       explain:"<strong>External CSS</strong> is in a separate <strong>.css</strong> file linked with &lt;link&gt;. Best practice — one file styles the whole website.",
+       variants:["Default"],
+       render(v,el){el.style.background="#fff";el.innerHTML='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"><div style="background:#e3f2fd;padding:10px 14px;border-radius:8px;font-size:12px;font-family:monospace;flex:1;min-width:140px"><b style="color:#1565c0">index.html</b><br><span style="color:#555">&lt;link href="style.css"&gt;</span></div><div style="background:#e8f5e9;padding:10px 14px;border-radius:8px;font-size:12px;font-family:monospace;flex:1;min-width:140px"><b style="color:#2e7d32">style.css</b><br><span style="color:#555">h1 { color: teal; }</span></div></div><h1 style="color:teal;font-size:26px">Styled from External CSS File!</h1>'}
+      },
+    ]
+  },
+  {
+    title:"CSS Selectors", icon:"🎯",
+    tags:[
+      {label:"Element Selector",icon:"🏷️",
+       code:"p {\n  color: red;\n  font-size: 16px;\n}",
+       explain:"The <strong>element selector</strong> targets all HTML tags of that type directly by name. Every &lt;p&gt; gets this style automatically.",
+       variants:["red","royalblue","darkorange","seagreen"],
+       render(v,el){el.style.background="#fff";el.innerHTML=`<p style="color:${v};font-size:16px">First &lt;p&gt; — element selector applied (${v})</p><p style="color:${v};font-size:16px;margin-top:8px">Second &lt;p&gt; — same rule applies to all &lt;p&gt; tags!</p>`}
+      },
+      {label:"Class Selector",icon:"🟡",
+       code:".box {\n  background-color: yellow;\n  padding: 14px;\n  border-radius: 8px;\n}\n\n<div class=\"box\">Content here</div>",
+       explain:"The <strong>class selector</strong> uses a <strong>dot (.)</strong>. Many elements can share the same class — perfect for reusable styles.",
+       variants:["#FFF59D","#B3E5FC","#C8E6C9","#F8BBD0"],
+       render(v,el){el.style.background="#fff";el.innerHTML=`<div style="background:${v};padding:16px;border-radius:8px;font-size:14px;color:#333;margin-bottom:8px"><b>.box</b> applied → background: <b>${v}</b></div><div style="background:${v};padding:16px;border-radius:8px;font-size:14px;color:#333">Multiple elements can share the same class!</div>`}
+      },
+      {label:"ID Selector",icon:"#️⃣",
+       code:"#title {\n  color: green;\n  font-size: 26px;\n}\n\n<h1 id=\"title\">Hello!</h1>",
+       explain:"The <strong>ID selector</strong> uses <strong>#</strong>. An ID must be unique — only one element per page should have that ID.",
+       variants:["seagreen","crimson","navy","darkorchid"],
+       render(v,el){el.style.background="#fff";el.innerHTML=`<h1 style="color:${v};font-size:26px;font-weight:bold">id="title" → color: ${v}</h1><p style="color:#888;font-size:12px;margin-top:10px;font-family:monospace">#title { color: ${v}; }</p>`}
+      },
+      {label:"Universal Selector",icon:"🌐",
+       code:"* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n}",
+       explain:"The <strong>* selector</strong> applies styles to every element on the page. Commonly used as a CSS reset.",
+       variants:["Default"],
+       render(v,el){el.style.background="#fff";el.innerHTML='<div style="border:2px dashed #7C3AED;padding:16px;border-radius:8px;text-align:center;color:#7C3AED"><div style="font-size:28px;margin-bottom:8px">*</div><div style="font-size:14px;font-weight:bold">Universal Selector</div><div style="font-size:12px;color:#888;margin-top:6px">Targets EVERY element — h1, p, div, span…</div><div style="font-family:monospace;margin-top:10px;font-size:12px;color:#555">margin:0; padding:0; box-sizing:border-box;</div></div>'}
+      },
+      {label:"Group Selector",icon:"👥",
+       code:"h1, p, div {\n  color: darkslateblue;\n  font-style: italic;\n}",
+       explain:"The <strong>group selector</strong> applies the same styles to multiple elements separated by commas — less repeated code.",
+       variants:["darkslateblue","teal","crimson","chocolate"],
+       render(v,el){el.style.background="#fff";el.innerHTML=`<h1 style="color:${v};font-style:italic;font-size:22px">h1 — grouped</h1><p style="color:${v};font-style:italic;margin-top:8px">p — same rule via group</p><div style="color:${v};font-style:italic;margin-top:8px">div — also in the group (${v})</div>`}
+      },
+    ]
+  },
+  {
+    title:"CSS Colors", icon:"🎨",
+    tags:[
+      {label:"Color by Name",icon:"🌈",
+       code:"h1 { color: tomato; }\np  { color: steelblue; }",
+       explain:"CSS supports <strong>140+ named colors</strong> like red, tomato, royalblue, seagreen — just type the name!",
+       variants:["tomato","royalblue","seagreen","orchid","coral","gold"],
+       render(v,el){el.style.background="#fff";el.innerHTML=`<h1 style="color:${v};font-size:28px">${v}</h1><p style="color:${v};font-size:15px;margin-top:8px;opacity:.8">Named color: <b>${v}</b></p><div style="width:60px;height:50px;background:${v};border-radius:8px;margin-top:10px"></div>`}
+      },
+      {label:"HEX Color",icon:"🔢",
+       code:"h1 { color: #e63946; }\np  { color: #457b9d; }",
+       explain:"<strong>HEX colors</strong> are 6-digit codes: <strong>#RRGGBB</strong> — each pair is Red, Green, Blue in hex (00–FF).",
+       variants:["#e63946","#457b9d","#2a9d8f","#f4a261","#6a4c93"],
+       render(v,el){el.style.background="#fff";el.innerHTML=`<h1 style="color:${v};font-size:26px">HEX: ${v}</h1><div style="display:flex;align-items:center;gap:12px;margin-top:12px"><div style="width:50px;height:50px;background:${v};border-radius:8px;border:1px solid #eee"></div><div style="font-family:monospace;font-size:14px;color:#555">color: <b>${v}</b></div></div>`}
+      },
+      {label:"RGB Color",icon:"🔴",
+       code:"p { color: rgb(230, 57, 70); }\n/* rgb(Red, Green, Blue) */\n/* Each: 0 (none) → 255 (full) */",
+       explain:"<strong>RGB</strong> uses three numbers for Red, Green, Blue — each 0–255. rgb(255,0,0) = pure red.",
+       variants:["rgb(230,57,70)","rgb(69,123,157)","rgb(42,157,143)","rgb(244,162,97)"],
+       render(v,el){el.style.background="#fff";el.innerHTML=`<h1 style="color:${v};font-size:22px">${v}</h1><div style="display:flex;align-items:center;gap:12px;margin-top:12px"><div style="width:50px;height:50px;background:${v};border-radius:8px"></div><div style="font-size:12px;color:#555;font-family:monospace">rgb(Red, Green, Blue)<br>0 → 255 each</div></div>`}
+      },
+    ]
+  },
+  {
+    title:"Background Properties", icon:"🖼️",
+    tags:[
+      {label:"Background Color",icon:"🎨",
+       code:"body {\n  background-color: #ffecd2;\n}\n.card {\n  background-color: #cce5ff;\n}",
+       explain:"<strong>background-color</strong> sets the background fill of any element.",
+       variants:["#ffecd2","#cce5ff","#c3f0ca","#f8d7da","#e8daef"],
+       render(v,el){el.style.background="#fff";el.innerHTML=`<div style="background:${v};padding:24px;border-radius:10px;text-align:center;font-size:14px;color:#333;transition:background .4s"><b>background-color: ${v}</b><br><span style="font-size:12px;opacity:.7;display:block;margin-top:6px">Applied to this div</span></div>`}
+      },
+      {label:"Background Image",icon:"🖼️",
+       code:"body {\n  background-image: url('image.jpg');\n}",
+       explain:"<strong>background-image</strong> sets an image as the background. Supports jpg, png, svg, gradients!",
+       variants:["Dots","Stripes","Grid","Circles"],
+       render(v,el){
+         el.style.background="#fff";
+         const p={Dots:"radial-gradient(circle, #7C3AED 2px, transparent 2px)",Stripes:"repeating-linear-gradient(45deg,#06b6d4 0,#06b6d4 2px,transparent 0,transparent 50%)",Grid:"linear-gradient(#7C3AED22 1px,transparent 1px),linear-gradient(90deg,#7C3AED22 1px,transparent 1px)",Circles:"radial-gradient(circle at 50% 50%,#f59e0b44 30%,transparent 30%)"};
+         const s={Dots:"20px 20px",Stripes:"8px 8px",Grid:"20px 20px",Circles:"40px 40px"};
+         el.innerHTML=`<div style="background-image:${p[v]};background-size:${s[v]};background-color:#f9f9f9;height:140px;border-radius:10px;display:flex;align-items:flex-end;padding:10px"><span style="background:#fff;padding:3px 10px;border-radius:4px;font-size:12px;font-family:monospace">background-image: ${v} pattern</span></div>`;
+       }
+      },
+      {label:"Background Repeat",icon:"🔁",
+       code:"body {\n  background-repeat: no-repeat;\n  /* repeat | no-repeat | repeat-x | repeat-y */\n}",
+       explain:"<strong>background-repeat</strong> controls tiling. <strong>no-repeat</strong>=once, <strong>repeat</strong>=tiles, <strong>repeat-x</strong>=horizontal only.",
+       variants:["repeat","no-repeat","repeat-x","repeat-y"],
+       render(v,el){
+         el.style.background="#fff";
+         const pat='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="12" fill="%237C3AED" opacity="0.25"/><circle cx="20" cy="20" r="5" fill="%237C3AED" opacity="0.5"/></svg>';
+         el.innerHTML=`<div style="background-image:url('${pat}');background-repeat:${v};background-color:#f9f9f9;height:140px;border-radius:10px;display:flex;align-items:flex-end;padding:10px"><span style="background:#fff;padding:3px 10px;border-radius:4px;font-size:12px;font-family:monospace">background-repeat: <b>${v}</b></span></div>`;
+       }
+      },
+      {label:"Background Size",icon:"↔️",
+       code:"body {\n  background-size: cover;\n  /* cover | contain | 100% | 150px */\n}",
+       explain:"<strong>background-size: cover</strong> fills the whole area; <strong>contain</strong> shows full image; px/% sets exact size.",
+       variants:["cover","contain","50%","150px"],
+       render(v,el){
+         el.style.background="#fff";
+         const img='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="120"><rect width="200" height="120" fill="%23E1F5EE" rx="8"/><text x="100" y="55" text-anchor="middle" fill="%230F6E56" font-size="20" font-weight="bold" font-family="sans-serif">BG IMAGE</text><text x="100" y="80" text-anchor="middle" fill="%231D9E75" font-size="12" font-family="sans-serif">background-size demo</text></svg>';
+         el.innerHTML=`<div style="background-image:url('${img}');background-size:${v};background-repeat:no-repeat;background-color:#e8f4fd;background-position:center;height:150px;border-radius:10px;display:flex;align-items:flex-end;padding:10px"><span style="background:#fff;padding:3px 10px;border-radius:4px;font-size:12px;font-family:monospace">background-size: <b>${v}</b></span></div>`;
+       }
+      },
+    ]
+  },
+  // ── BOX MODEL ─────────────────────────────────────────────────────────────
+  {
+    title:"CSS Box Model", icon:"📦",
+    tags:[
+      {
+        label:"Box Model Overview",icon:"📦",
+        code:"/* Every HTML element is a box with: */\n.box {\n  width: 200px;       /* content width  */\n  height: 80px;       /* content height */\n  padding: 20px;      /* inner space    */\n  border: 2px solid;  /* border line    */\n  margin: 20px;       /* outer space    */\n}",
+        explain:"The <strong>CSS Box Model</strong> wraps every element in 4 layers: <strong>content</strong> → <strong>padding</strong> → <strong>border</strong> → <strong>margin</strong>. Understanding this is the key to mastering layouts!",
+        variants:["Default"],
+        render(v,el){
+          el.style.background="#f5f5f5";el.style.padding="10px";
+          el.innerHTML=`
+            <div style="display:flex;align-items:center;justify-content:center;padding:10px">
+              <div style="position:relative;text-align:center">
+                <div style="background:rgba(255,152,0,0.15);border:2px dashed #FF9800;padding:20px;border-radius:8px">
+                  <span style="position:absolute;top:4px;left:8px;font-size:10px;color:#E65100;font-weight:800">MARGIN</span>
+                  <div style="background:rgba(33,150,243,0.15);border:2px dashed #2196F3;padding:16px;border-radius:6px">
+                    <span style="position:absolute;top:28px;left:28px;font-size:10px;color:#0D47A1;font-weight:800">BORDER</span>
+                    <div style="background:rgba(76,175,80,0.15);border:2px dashed #4CAF50;padding:14px;border-radius:4px">
+                      <span style="position:absolute;top:52px;left:52px;font-size:10px;color:#1B5E20;font-weight:800">PADDING</span>
+                      <div style="background:#fff3e0;border:2px solid #FF9800;padding:10px 18px;border-radius:4px;font-size:13px;font-weight:800;color:#333">
+                        CONTENT<br><span style="font-size:10px;color:#888">width × height</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap">
+              <span style="font-size:11px;background:#FFF3E0;color:#E65100;padding:3px 10px;border-radius:99px;font-weight:700">🟠 Margin = outer space</span>
+              <span style="font-size:11px;background:#E3F2FD;color:#0D47A1;padding:3px 10px;border-radius:99px;font-weight:700">🔵 Border = outline</span>
+              <span style="font-size:11px;background:#E8F5E9;color:#1B5E20;padding:3px 10px;border-radius:99px;font-weight:700">🟢 Padding = inner space</span>
+              <span style="font-size:11px;background:#FFF8E1;color:#F57F17;padding:3px 10px;border-radius:99px;font-weight:700">🟡 Content = your text/image</span>
+            </div>`;
+        }
+      },
+      {
+        label:"Padding — Live Slider",icon:"📐",
+        code:".box {\n  padding: 20px;          /* all sides */\n  padding-top: 10px;      /* top only  */\n  padding-right: 30px;    /* right only*/\n  padding-bottom: 10px;   /* bottom    */\n  padding-left: 30px;     /* left only */\n}",
+        explain:"<strong>padding</strong> is the space between the content and the border — inside the element. Use the sliders to see it change live!",
+        variants:["Default"],
+        isSlider:true,
+        sliders:[
+          {id:"pt",label:"padding-top",min:0,max:60,val:20,unit:"px"},
+          {id:"pr",label:"padding-right",min:0,max:60,val:20,unit:"px"},
+          {id:"pb",label:"padding-bottom",min:0,max:60,val:20,unit:"px"},
+          {id:"pl",label:"padding-left",min:0,max:60,val:20,unit:"px"},
+        ],
+        render(v,el,vals){
+          const pt=vals&&vals.pt!=null?vals.pt:20;
+          const pr=vals&&vals.pr!=null?vals.pr:20;
+          const pb=vals&&vals.pb!=null?vals.pb:20;
+          const pl=vals&&vals.pl!=null?vals.pl:20;
+          el.style.background="#f5f5f5";el.style.padding="16px";
+          el.innerHTML=`
+            <div style="display:flex;justify-content:center;align-items:center;min-height:160px">
+              <div style="
+                padding-top:${pt}px;padding-right:${pr}px;padding-bottom:${pb}px;padding-left:${pl}px;
+                background:#e3f2fd;border:3px solid #1565C0;border-radius:8px;
+                position:relative;transition:all .25s;
+              ">
+                <div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:#1565C0;font-weight:800;white-space:nowrap">top: ${pt}px</div>
+                <div style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:10px;color:#1565C0;font-weight:800;white-space:nowrap">bottom: ${pb}px</div>
+                <div style="position:absolute;left:-38px;top:50%;transform:translateY(-50%);font-size:10px;color:#1565C0;font-weight:800;white-space:nowrap">left:<br>${pl}px</div>
+                <div style="position:absolute;right:-44px;top:50%;transform:translateY(-50%);font-size:10px;color:#1565C0;font-weight:800;white-space:nowrap">right:<br>${pr}px</div>
+                <div style="background:#fff;border:2px dashed #90CAF9;padding:12px 20px;border-radius:6px;font-size:13px;font-weight:800;color:#1565C0;text-align:center;min-width:120px">
+                  CONTENT<br><span style="font-size:10px;color:#888;font-weight:400">The actual element</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;justify-content:center;margin-top:24px;flex-wrap:wrap">
+              <span style="font-size:11px;background:#E3F2FD;color:#1565c0;padding:3px 10px;border-radius:99px;font-weight:700;border:1px solid #90CAF9">padding: ${pt}px ${pr}px ${pb}px ${pl}px</span>
+            </div>`;
+        }
+      },
+      {
+        label:"Margin — Live Slider",icon:"↔️",
+        code:".box {\n  margin: 20px;           /* all sides */\n  margin-top: 10px;\n  margin-right: 30px;\n  margin-bottom: 10px;\n  margin-left: 30px;\n  margin: auto; /* center horizontally */\n}",
+        explain:"<strong>margin</strong> is the space outside the element — it pushes other elements away. Drag sliders to see the spacing change live!",
+        variants:["Default"],
+        isSlider:true,
+        sliders:[
+          {id:"mt",label:"margin-top",min:0,max:60,val:20,unit:"px"},
+          {id:"mr",label:"margin-right",min:0,max:60,val:20,unit:"px"},
+          {id:"mb",label:"margin-bottom",min:0,max:60,val:20,unit:"px"},
+          {id:"ml",label:"margin-left",min:0,max:60,val:20,unit:"px"},
+        ],
+        render(v,el,vals){
+          const mt=vals&&vals.mt!=null?vals.mt:20;
+          const mr=vals&&vals.mr!=null?vals.mr:20;
+          const mb=vals&&vals.mb!=null?vals.mb:20;
+          const ml=vals&&vals.ml!=null?vals.ml:20;
+          el.style.background="#f5f5f5";el.style.padding="10px";
+          el.innerHTML=`
+            <div style="background:#fff;border:1px dashed #ccc;border-radius:8px;padding:6px;min-height:160px;position:relative">
+              <div style="font-size:10px;color:#bbb;font-weight:700;margin-bottom:4px;text-align:center">PAGE / PARENT ELEMENT</div>
+              <div style="
+                margin-top:${mt}px;margin-right:${mr}px;margin-bottom:${mb}px;margin-left:${ml}px;
+                background:#FFF3E0;border:3px solid #FF9800;border-radius:8px;
+                padding:14px;text-align:center;transition:all .25s;position:relative;
+              ">
+                <div style="font-size:13px;font-weight:800;color:#E65100">.box element</div>
+                <div style="font-size:11px;color:#888;margin-top:4px">margin: ${mt}px ${mr}px ${mb}px ${ml}px</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap">
+              <span style="font-size:11px;background:#FFF3E0;color:#E65100;padding:3px 10px;border-radius:99px;font-weight:700;border:1px solid #FFB74D">margin: ${mt}px ${mr}px ${mb}px ${ml}px</span>
+            </div>`;
+        }
+      },
+      {
+        label:"Width — Live Slider",icon:"↔️",
+        code:".box {\n  width: 200px;    /* fixed width */\n  width: 50%;      /* percentage  */\n  width: auto;     /* auto = default */\n  max-width: 600px;\n  min-width: 100px;\n}",
+        explain:"<strong>width</strong> sets how wide an element is. It can be px (fixed), % (relative to parent), or auto. Drag to see live changes!",
+        variants:["Default"],
+        isSlider:true,
+        sliders:[
+          {id:"w",label:"width",min:60,max:480,val:200,unit:"px"},
+        ],
+        render(v,el,vals){
+          const w=vals&&vals.w!=null?vals.w:200;
+          el.style.background="#f5f5f5";el.style.padding="16px";
+          el.innerHTML=`
+            <div style="background:#fff;border:1px dashed #ccc;padding:12px;border-radius:8px;min-height:120px;overflow:hidden">
+              <div style="font-size:10px;color:#bbb;font-weight:700;margin-bottom:8px">PARENT CONTAINER (full width)</div>
+              <div style="
+                width:${w}px;max-width:100%;
+                background:#e8f5e9;border:3px solid #388E3C;
+                border-radius:8px;padding:14px;text-align:center;transition:width .2s;
+              ">
+                <div style="font-size:13px;font-weight:800;color:#1b5e20">width: ${w}px</div>
+                <div style="font-size:10px;color:#888;margin-top:4px">← ${w}px →</div>
+              </div>
+            </div>`;
+        }
+      },
+      {
+        label:"Height — Live Slider",icon:"↕️",
+        code:".box {\n  height: 100px;   /* fixed height */\n  height: 50%;     /* percentage   */\n  height: auto;    /* auto = default (grows with content) */\n  min-height: 80px;\n  max-height: 300px;\n}",
+        explain:"<strong>height</strong> sets how tall an element is. By default it's <strong>auto</strong> (grows with content). Drag to see the element grow and shrink!",
+        variants:["Default"],
+        isSlider:true,
+        sliders:[
+          {id:"h",label:"height",min:40,max:220,val:100,unit:"px"},
+        ],
+        render(v,el,vals){
+          const h=vals&&vals.h!=null?vals.h:100;
+          el.style.background="#f5f5f5";el.style.padding="16px";
+          el.innerHTML=`
+            <div style="background:#fff;border:1px dashed #ccc;padding:12px;border-radius:8px;display:flex;align-items:flex-start;gap:12px">
+              <div style="
+                width:180px;height:${h}px;
+                background:#f3e5f5;border:3px solid #7B1FA2;
+                border-radius:8px;display:flex;align-items:center;justify-content:center;
+                flex-direction:column;gap:4px;transition:height .2s;
+              ">
+                <div style="font-size:13px;font-weight:800;color:#4a148c">height: ${h}px</div>
+                <div style="font-size:10px;color:#888">↕ ${h}px</div>
+              </div>
+              <div style="font-size:12px;color:#555;line-height:1.8">
+                <b>height: ${h}px</b><br>
+                <span style="color:#888;font-size:11px">Drag slider to<br>change height!</span>
+              </div>
+            </div>`;
+        }
+      },
+      {
+        label:"Border — Live Slider",icon:"🔲",
+        code:".box {\n  border: 2px solid black;  /* width style color */\n  border-width: 4px;\n  border-style: dashed;     /* solid|dashed|dotted|double */\n  border-color: royalblue;\n  border-radius: 10px;      /* rounded corners */\n}",
+        explain:"<strong>border</strong> is the line around an element. Set its <strong>width</strong>, <strong>style</strong>, <strong>color</strong> and <strong>border-radius</strong> for rounded corners!",
+        variants:["solid","dashed","dotted","double"],
+        isSlider:true,
+        sliders:[
+          {id:"bw",label:"border-width",min:1,max:16,val:3,unit:"px"},
+          {id:"br",label:"border-radius",min:0,max:60,val:8,unit:"px"},
+        ],
+        render(v,el,vals){
+          const bw=vals&&vals.bw!=null?vals.bw:3;
+          const br=vals&&vals.br!=null?vals.br:8;
+          const style=v||"solid";
+          el.style.background="#f5f5f5";el.style.padding="20px";
+          el.innerHTML=`
+            <div style="display:flex;justify-content:center;align-items:center;min-height:140px">
+              <div style="
+                width:220px;padding:20px;
+                border:${bw}px ${style} #7C3AED;
+                border-radius:${br}px;
+                background:#f9f4ff;text-align:center;transition:all .2s;
+              ">
+                <div style="font-size:13px;font-weight:800;color:#4a148c">border demo</div>
+                <div style="font-size:11px;color:#888;margin-top:6px;font-family:monospace">
+                  ${bw}px ${style} #7C3AED<br>
+                  border-radius: ${br}px
+                </div>
+              </div>
+            </div>`;
+        }
+      },
+      {
+        label:"All Box Model — Live",icon:"🎛️",
+        code:".box {\n  width: 200px;\n  height: 80px;\n  padding: 20px;\n  margin: 20px;\n  border: 3px solid #7C3AED;\n}",
+        explain:"Control <strong>all box model properties together</strong>. This is how every element on a webpage is sized and spaced — width + padding + border + margin.",
+        variants:["Default"],
+        isSlider:true,
+        sliders:[
+          {id:"w",label:"width",min:80,max:350,val:200,unit:"px"},
+          {id:"h",label:"height",min:40,max:180,val:80,unit:"px"},
+          {id:"p",label:"padding",min:0,max:50,val:16,unit:"px"},
+          {id:"m",label:"margin",min:0,max:50,val:16,unit:"px"},
+          {id:"bw",label:"border-width",min:0,max:12,val:3,unit:"px"},
+        ],
+        render(v,el,vals){
+          const w=vals&&vals.w!=null?vals.w:200;
+          const h=vals&&vals.h!=null?vals.h:80;
+          const p=vals&&vals.p!=null?vals.p:16;
+          const m=vals&&vals.m!=null?vals.m:16;
+          const bw=vals&&vals.bw!=null?vals.bw:3;
+          boxDemo(el,{width:w,height:h,padding:p,margin:m,border:bw});
+        }
+      },
+    ]
+  },
+  {
+    title:"CSS Comments", icon:"💬",
+    tags:[
+      {label:"CSS Comments",icon:"💬",
+       code:"/* This is a CSS comment */\n\nh1 {\n  /* color: gray; ← commented out */\n  color: steelblue; /* this one works! */\n}",
+       explain:"CSS comments start with <strong>/*</strong> and end with <strong>*/</strong>. The browser ignores them — use them to explain code or disable lines.",
+       variants:["Default"],
+       render(v,el){el.style.background="#fff";el.innerHTML='<div style="font-family:monospace;font-size:13px;line-height:2;background:#f8f8f8;padding:14px;border-radius:8px;border-left:3px solid #888"><span style="color:#888">/* This is a comment — ignored */</span><br><span style="color:#e67e22">h1</span> {<br>&nbsp;&nbsp;<span style="color:#888">/* color: gray; ← commented out */</span><br>&nbsp;&nbsp;<span style="color:#2980b9">color</span>: <span style="color:#27ae60">steelblue</span>;<br>}</div><h1 style="color:steelblue;font-size:22px;margin-top:14px">Only active lines run — comment invisible to browser!</h1>'}
+      },
+    ]
+  },
+  {
+    title:"CSS Advantages", icon:"⭐",
+    tags:[
+      {label:"Attractive Design",icon:"✨",
+       code:"body {\n  background: linear-gradient(135deg,#667eea,#764ba2);\n  color: white;\n}",
+       explain:"CSS makes pages <strong>visually attractive</strong> with colors, fonts, gradients, shadows and animations.",
+       variants:["Default"],
+       render(v,el){el.style.background="#fff";el.innerHTML='<div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:24px;border-radius:12px;text-align:center;color:white"><h2 style="font-size:20px;color:white;margin-bottom:8px">CSS makes pages attractive!</h2><p style="font-size:14px;opacity:.9">Fonts · Colors · Gradients · Shadows · Animations</p></div>'}
+      },
+      {label:"Reduces Code",icon:"📉",
+       code:"/* Without CSS — repeated on each tag */\n<h1 style=\"color:blue\">...</h1>\n<h2 style=\"color:blue\">...</h2>\n\n/* With CSS — write once */\nh1, h2 { color: blue; }",
+       explain:"CSS <strong>reduces repeated code</strong> — one rule applies to all matching elements across all pages.",
+       variants:["Default"],
+       render(v,el){el.style.background="#fff";el.innerHTML='<div style="display:flex;gap:10px"><div style="flex:1;background:#fdecea;padding:12px;border-radius:8px"><div style="font-size:11px;font-weight:bold;color:#c62828;margin-bottom:8px">❌ WITHOUT CSS</div><div style="font-family:monospace;font-size:11px;color:#555;line-height:1.8">&lt;h1 style="color:blue"&gt;<br>&lt;h2 style="color:blue"&gt;<br>...(repeated)</div></div><div style="flex:1;background:#e8f5e9;padding:12px;border-radius:8px"><div style="font-size:11px;font-weight:bold;color:#2e7d32;margin-bottom:8px">✅ WITH CSS</div><div style="font-family:monospace;font-size:11px;color:#555;line-height:1.8">h1, h2 {<br>&nbsp;&nbsp;color: blue;<br>}<br>Done! One rule!</div></div></div>'}
+      },
+      {label:"Responsive Design",icon:"📱",
+       code:"@media (max-width: 600px) {\n  .card {\n    width: 100%;\n    font-size: 14px;\n  }\n}",
+       explain:"CSS <strong>responsive design</strong> uses media queries — content adapts to any screen size.",
+       variants:["Default"],
+       render(v,el){el.style.background="#fff";el.innerHTML='<div style="font-size:13px;color:#555;margin-bottom:10px;text-align:center">Same page — different screen sizes 👇</div><div style="display:flex;gap:10px;align-items:flex-end"><div style="flex:2;background:#e3f2fd;padding:14px;border-radius:8px;text-align:center"><div style="font-size:20px">🖥️</div><div style="font-size:12px;font-weight:bold;color:#1565c0;margin-top:4px">Desktop</div><div style="font-size:11px;color:#888">Multi-column</div></div><div style="flex:1;background:#f3e5f5;padding:14px;border-radius:8px;text-align:center"><div style="font-size:20px">📱</div><div style="font-size:12px;font-weight:bold;color:#6a1b9a;margin-top:4px">Mobile</div><div style="font-size:11px;color:#888">Single col</div></div></div>'}
+      },
+      {label:"Easy Maintenance",icon:"🛠️",
+       code:"/* Change ONE file → entire website updates */\nbody {\n  font-family: 'Roboto', sans-serif;\n}",
+       explain:"Update one CSS file and <strong>all pages update instantly</strong> — no editing every HTML file.",
+       variants:["Default"],
+       render(v,el){el.style.background="#fff";el.innerHTML='<div style="text-align:center"><div style="background:#fff8e1;border:2px solid #f59e0b;padding:14px;border-radius:10px;display:inline-block;font-size:13px;color:#555;font-family:monospace">📄 style.css<br><b style="color:#e67e22">font-family: Roboto</b></div><div style="font-size:20px;margin:8px 0">↓</div><div style="display:flex;gap:8px;justify-content:center"><div style="background:#e8f5e9;padding:10px 14px;border-radius:8px;font-size:12px;text-align:center;color:#2e7d32">📄 page1.html<br>✅ Updated</div><div style="background:#e8f5e9;padding:10px 14px;border-radius:8px;font-size:12px;text-align:center;color:#2e7d32">📄 page2.html<br>✅ Updated</div><div style="background:#e8f5e9;padding:10px 14px;border-radius:8px;font-size:12px;text-align:center;color:#2e7d32">📄 page3.html<br>✅ Updated</div></div></div>'}
+      },
+    ]
+  },
+];
+
+// ─── UI WIRING ────────────────────────────────────────────────────────────────
+const sidebar=document.getElementById('sidebar');
+const topicName=document.getElementById('topic-name');
+const topicDesc=document.getElementById('topic-desc');
+const topicIcon=document.getElementById('topic-icon');
+const content=document.getElementById('content');
+let activeBtn=null;
+
+topics.forEach(topic=>{
+  const wrap=document.createElement('div');wrap.className='topic';
+  const title=document.createElement('div');title.className='topic-title';
+  title.innerHTML=`<span>${topic.icon} ${topic.title}</span><span class="arrow">▶</span>`;
+  const sub=document.createElement('div');sub.className='subtags';
+  topic.tags.forEach(tag=>{
+    const btn=document.createElement('button');btn.className='tag-btn';
+    btn.textContent=tag.label;
+    btn.onclick=()=>showTag(tag,btn);
+    sub.appendChild(btn);
+  });
+  title.onclick=()=>{const o=sub.classList.toggle('open');title.classList.toggle('open',o)};
+  wrap.appendChild(title);wrap.appendChild(sub);sidebar.appendChild(wrap);
+});
+
+function buildUI(){
+  content.innerHTML=`
+    <div id="variant-bar" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+    <div id="slider-section" style="display:none"></div>
+    <div id="preview-wrap" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden">
+      <div style="font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text3);padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;text-transform:uppercase">
+        <span style="width:7px;height:7px;border-radius:50%;background:#2ecc71;display:inline-block"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#f39c12;display:inline-block"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#e74c3c;display:inline-block"></span>
+        &nbsp;Live Preview
+      </div>
+      <div id="preview-area" style="min-height:200px;padding:20px;background:#fff;transition:all .3s"></div>
+    </div>
+    <div id="code-wrap" style="background:#0d1117;border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden">
+      <div style="font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text3);padding:8px 14px;border-bottom:1px solid rgba(255,255,255,0.06);text-transform:uppercase">📋 CSS Code</div>
+      <pre id="code-block" style="font-family:'Fira Code',monospace;font-size:12.5px;color:#c9d1d9;padding:14px 16px;white-space:pre;overflow-x:auto;line-height:1.8;background:transparent"></pre>
+    </div>
+    <div id="explain" style="font-size:13.5px;font-weight:600;color:var(--text2);line-height:1.75;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-left:3px solid var(--accent3);border-radius:var(--radius-sm);padding:12px 14px"></div>
+  `;
+}
+
+function showTag(tag,btn){
+  if(activeBtn)activeBtn.classList.remove('active');
+  btn.classList.add('active');activeBtn=btn;
+  if(document.getElementById('welcome'))buildUI();
+
+  topicName.textContent=tag.icon+' '+tag.label;
+  topicDesc.textContent='Live CSS demo — click variants to see changes';
+  topicIcon.textContent=tag.icon;
+  document.getElementById('code-block').textContent=tag.code;
+  document.getElementById('explain').innerHTML='💡 '+tag.explain;
+
+  // variant pills
+  const variantBar=document.getElementById('variant-bar');
+  variantBar.innerHTML='';
+  const variants=tag.variants||['Default'];
+  let activeVariant=variants[0];
+  variants.forEach(v=>{
+    const p=document.createElement('span');
+    p.className='pill'+(v===activeVariant?' on':'');
+    p.textContent=v;
+    p.onclick=()=>{
+      document.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));
+      p.classList.add('on');activeVariant=v;
+      doRender(tag,v,collectVals(tag));
+    };
+    variantBar.appendChild(p);
+  });
+
+  // sliders
+  const sliderSection=document.getElementById('slider-section');
+  sliderSection.innerHTML='';
+  if(tag.isSlider&&tag.sliders){
+    sliderSection.style.display='block';
+    sliderSection.style.cssText='background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 14px;display:flex;flex-direction:column;gap:4px';
+    const stitle=document.createElement('div');
+    stitle.style.cssText='font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:6px';
+    stitle.textContent='🎛️ Live Controls';
+    sliderSection.appendChild(stitle);
+    tag.sliders.forEach(s=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:4px';
+      const lbl=document.createElement('label');
+      lbl.style.cssText='font-size:12px;font-weight:700;color:var(--text2);width:120px;flex-shrink:0;font-family:Fira Code,monospace';
+      lbl.textContent=s.label;
+      const inp=document.createElement('input');
+      inp.type='range';inp.min=s.min;inp.max=s.max;inp.value=s.val;inp.id='sl_'+s.id;
+      inp.style.cssText='flex:1;accent-color:#06b6d4';
+      const valSpan=document.createElement('span');
+      valSpan.style.cssText='font-family:Fira Code,monospace;font-size:12px;color:#06b6d4;width:52px;text-align:right;flex-shrink:0';
+      valSpan.textContent=s.val+s.unit;
+      inp.addEventListener('input',()=>{
+        valSpan.textContent=inp.value+s.unit;
+        doRender(tag,activeVariant,collectVals(tag));
+      });
+      row.appendChild(lbl);row.appendChild(inp);row.appendChild(valSpan);
+      sliderSection.appendChild(row);
+    });
+  } else {
+    sliderSection.style.display='none';
+  }
+
+  doRender(tag,activeVariant,collectVals(tag));
+}
+
+function collectVals(tag){
+  if(!tag.sliders)return{};
+  const vals={};
+  tag.sliders.forEach(s=>{
+    const el=document.getElementById('sl_'+s.id);
+    if(el)vals[s.id]=parseInt(el.value);
+  });
+  return vals;
+}
+
+function doRender(tag,v,vals){
+  const el=document.getElementById('preview-area');
+  el.innerHTML='';
+  el.style.cssText='min-height:200px;padding:20px;background:#fff;transition:all .3s';
+  tag.render(v,el,vals||{});
+}
+
+// auto-open Box Model section
+const titles=document.querySelectorAll('.topic-title');
+titles.forEach(t=>{ if(t.textContent.includes('Box Model')){t.click();} });
+// click first button in Box Model
+setTimeout(()=>{
+  const btns=document.querySelectorAll('.tag-btn');
+  btns.forEach(b=>{if(b.textContent.includes('Box Model Overview'))b.click();});
+},50);
+</script>
+</body>
+</html>
